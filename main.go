@@ -45,6 +45,15 @@ func main() {
 	routers.RegisterAuthRoutes(app, db)
 	routers.RegisterUserRoutes(app, db)
 
+	// Health check endpoint
+	app.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "healthy",
+			"service": "go-auth",
+			"version": "1.0.0",
+		})
+	})
+
 	app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	app.Run(":3000")
