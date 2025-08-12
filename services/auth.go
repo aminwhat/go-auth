@@ -1,15 +1,14 @@
 package services
 
-import "go-auth/repositories"
-
-type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
+import (
+	"go-auth/dtos"
+	"go-auth/repositories"
+)
 
 type AuthService interface {
-	Signup() User
-	Login() User
+	Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupResponse, error)
+	SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (dtos.AuthTokenResponse, error)
+	Login(model dtos.AuthLoginRequest) (dtos.AuthTokenResponse, error)
 }
 
 type authService struct {
@@ -22,10 +21,14 @@ func NewAuthService(userRepo repositories.UserRepository) AuthService {
 	}
 }
 
-func (s *authService) Signup() User {
+func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupResponse, error) {
 	panic("unimplemented")
 }
 
-func (s *authService) Login() User {
+func (s *authService) SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (dtos.AuthTokenResponse, error) {
+	panic("unimplemented")
+}
+
+func (s *authService) Login(model dtos.AuthLoginRequest) (dtos.AuthTokenResponse, error) {
 	panic("unimplemented")
 }

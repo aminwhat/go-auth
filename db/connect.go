@@ -11,14 +11,14 @@ import (
 
 var MongoClient *mongo.Client
 
-func ConnectMongo(uri string) *mongo.Client {
+func ConnectMongo(uri string, username string, password string) *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	mongoOptions := options.Client().ApplyURI(uri)
 	mongoOptions.SetAuth(options.Credential{
-		Username:      "root",
-		Password:      "my-secret-pw",
+		Username:      username,
+		Password:      password,
 		AuthSource:    "admin",
 		AuthMechanism: "SCRAM-SHA-256",
 	})

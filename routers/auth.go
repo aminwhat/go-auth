@@ -18,11 +18,12 @@ func RegisterAuthRoutes(r *gin.Engine, db *mongo.Database) {
 	authService := services.NewAuthService(userRepo)
 
 	// Initialize controller with service
-	userController := controllers.NewAuthController(authService)
+	authController := controllers.NewAuthController(authService)
 
-	user := r.Group("/user")
+	auth := r.Group("/auth")
 
-	user.GET("/signup", userController.Signup)
-	user.POST("/login", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"msg": "users"}) })
+	auth.POST("/signup", authController.Signup)
+	auth.POST("/signup/confirm-otp", authController.SignupConfirmOtp)
+	auth.POST("/login", authController.Login)
 
 }
