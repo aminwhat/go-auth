@@ -1,8 +1,14 @@
 package services
 
 import (
+	"fmt"
 	"go-auth/dtos"
+	"go-auth/models"
 	"go-auth/repositories"
+	"math/rand"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AuthService interface {
@@ -12,17 +18,82 @@ type AuthService interface {
 }
 
 type authService struct {
-	userRepo repositories.UserRepository
+	userRepo        repositories.UserRepository
+	authRegisterReo repositories.AuthRegisterRepository
 }
 
-func NewAuthService(userRepo repositories.UserRepository) AuthService {
+func NewAuthService(userRepo repositories.UserRepository, authRegisterRepo repositories.AuthRegisterRepository) AuthService {
 	return &authService{
-		userRepo: userRepo,
+		userRepo:        userRepo,
+		authRegisterReo: authRegisterRepo,
 	}
 }
 
+func generateOtpCode(authRegisterReo repositories.AuthRegisterRepository) (otpCode int, err error) {
+	for {
+		otpCode = rand.Intn(9000) + 1000
+
+		exists, err := authRegisterReo.ExistsByOtpCode(otpCode)
+		if err != nil {
+			break
+		}
+
+		if !exists {
+			break
+		}
+	}
+
+	fmt.Println("OtpCode: " + string(otpCode))
+
+	return
+}
+
 func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupResponse, error) {
-	panic("unimplemented")
+	existsBefore, err := s.authRegisterReo.ExistsByPhoneNumber(model.PhoneNumber)
+
+	if err != nil {
+		return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
+	}
+
+	if existsBefore == nil {
+		randomOtpCode, err := generateOtpCode(s.authRegisterReo)
+
+		if err != nil {
+			return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
+		}
+
+		s.authRegisterReo.Create(models.AuthRegister{
+			ID:          primitive.NewObjectID(),
+			PhoneNumber: model.PhoneNumber,
+			OtpCode:     string(randomOtpCode),
+			Trys:        0,
+			CreatedDate: primitive.NewDateTimeFromTime(time.Now()),
+		})
+
+		return dtos.AuthSignupResponse{Succeed: true, Message: "Successfully Registered and OtpCode Sent(as fake)"}, nil
+	}
+
+	// Check if it less than 3 trys and less than 10 minutes ago
+	if existsBefore.Trys < 3 && time.Since(existsBefore.CreatedDate.Time()) < 10*time.Minute {
+
+		if time.Since(existsBefore.UpdatedDate.Time()) < 2*time.Minute {
+			return dtos.AuthSignupResponse{Succeed: false, Message: "The Code is not expired, therefore could not send it again"}, nil
+		}
+
+		randomOtpCode, err := generateOtpCode(s.authRegisterReo)
+
+		if err != nil {
+			return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
+		}
+
+		existsBefore.OtpCode = string(randomOtpCode)
+		existsBefore.Trys += 1
+		existsBefore.UpdatedDate = primitive.NewDateTimeFromTime(time.Now())
+
+		return dtos.AuthSignupResponse{Succeed: true, Message: "Code Sent Again"}, nil
+	}
+
+	return dtos.AuthSignupResponse{Succeed: false, Message: "Max Code Try Reached, Please Try Again Later"}, nil
 }
 
 func (s *authService) SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (dtos.AuthTokenResponse, error) {

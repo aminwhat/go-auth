@@ -14,8 +14,11 @@ func RegisterAuthRoutes(r *gin.Engine, db *mongo.Database) {
 	// Initialize user Repository
 	userRepo := repositories.NewUserRepository(db)
 
+	// Initialize auth register repository
+	authRegisterRepo := repositories.NewAuthRegisterRepository(db)
+
 	// Initialize service with database instance
-	authService := services.NewAuthService(userRepo)
+	authService := services.NewAuthService(userRepo, authRegisterRepo)
 
 	// Initialize controller with service
 	authController := controllers.NewAuthController(authService)
