@@ -12,9 +12,10 @@ import (
 type AuthRegisterRepository interface {
 	Create(authRegister models.AuthRegister) error
 	Update(authRegister models.AuthRegister) error
-	Exists(phoneNumber string, otpCode int) (bool, error)
+	Exists(phoneNumber string, otpCode string) (bool, error)
 	ExistsByPhoneNumber(phoneNumber string) (*models.AuthRegister, error)
 	ExistsByOtpCode(otpCode int) (bool, error)
+	DeleteByPhoneNumber(phoneNumber string) error
 }
 
 type authRegisterRepository struct {
@@ -39,7 +40,7 @@ func (a *authRegisterRepository) Create(authRegister models.AuthRegister) error 
 	return nil
 }
 
-func (a *authRegisterRepository) Exists(phoneNumber string, otpCode int) (bool, error) {
+func (a *authRegisterRepository) Exists(phoneNumber string, otpCode string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -95,6 +96,19 @@ func (a *authRegisterRepository) Update(authRegister models.AuthRegister) error 
 	update := bson.M{"$set": authRegister}
 
 	_, err := a.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *authRegisterRepository) DeleteByPhoneNumber(phoneNumber string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filter := bson.M{"phoneNumber": phoneNumber}
+	_, err := a.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}

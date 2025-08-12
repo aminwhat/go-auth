@@ -51,6 +51,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/auth/signup/confirm-otp": {
+            "post": {
+                "description": "Validate the PhoneNumber with the OtpCode alongside withit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Signup Confirm Otp Method",
+                "parameters": [
+                    {
+                        "description": "AuthSignupConfirmOtpRequest model",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AuthSignupConfirmOtpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AuthTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Request body is not valid",
+                        "schema": {
+                            "$ref": "#/definitions/controllers_swagger.AuthSignupConfirmOtpBadResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -64,6 +101,41 @@ const docTemplate = `{
                 "succeed": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "controllers_swagger.AuthSignupConfirmOtpBadResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "string"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "token": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "dtos.AuthSignupConfirmOtpRequest": {
+            "type": "object",
+            "required": [
+                "phoneNumber"
+            ],
+            "properties": {
+                "otpCode": {
+                    "type": "string",
+                    "example": "1234"
+                },
+                "phoneNumber": {
+                    "type": "string",
+                    "maxLength": 11,
+                    "minLength": 11,
+                    "example": "09123456789"
                 }
             }
         },
@@ -91,6 +163,23 @@ const docTemplate = `{
                 "succeed": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "dtos.AuthTokenResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Succeed"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "token": {
+                    "type": "string",
+                    "example": "the token will be here"
                 }
             }
         }

@@ -21,12 +21,14 @@ type AuthService interface {
 type authService struct {
 	userRepo        repositories.UserRepository
 	authRegisterReo repositories.AuthRegisterRepository
+	jwtService      JwtService
 }
 
-func NewAuthService(userRepo repositories.UserRepository, authRegisterRepo repositories.AuthRegisterRepository) AuthService {
+func NewAuthService(userRepo repositories.UserRepository, authRegisterRepo repositories.AuthRegisterRepository, jwtService JwtService) AuthService {
 	return &authService{
 		userRepo:        userRepo,
 		authRegisterReo: authRegisterRepo,
+		jwtService:      jwtService,
 	}
 }
 
@@ -120,7 +122,36 @@ func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupRespo
 }
 
 func (s *authService) SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (dtos.AuthTokenResponse, error) {
-	panic("unimplemented")
+	exists, err := s.authRegisterReo.Exists(model.PhoneNumber, model.OtpCode)
+
+	if err != nil {
+		return dtos.AuthTokenResponse{Succeed: false, Message: "Something went wrong"}, err
+	}
+
+	if exists {
+		s.authRegisterReo.DeleteByPhoneNumber(model.PhoneNumber)
+
+		user, err := s.userRepo.Create(models.User{
+			ID:          primitive.NewObjectID(),
+			PhoneNumber: model.PhoneNumber,
+			CreatedDate: primitive.NewDateTimeFromTime(time.Now()),
+		})
+
+		if err != nil {
+			return dtos.AuthTokenResponse{Succeed: false, Message: "Something went wrong: In Creating User"}, err
+		}
+
+		token, err := s.jwtService.GenerateToken(user.ID.Hex())
+
+		if err != nil {
+			fmt.Println("generate token error: " + err.Error())
+			return dtos.AuthTokenResponse{Succeed: false, Message: "Something went wrong: In Generating the Jwt Token"}, err
+		}
+
+		return dtos.AuthTokenResponse{Succeed: true, Message: "Succeed", Token: token}, err
+	}
+
+	return dtos.AuthTokenResponse{Succeed: false, Message: "Invalid Otp Code"}, err
 }
 
 func (s *authService) Login(model dtos.AuthLoginRequest) (dtos.AuthTokenResponse, error) {

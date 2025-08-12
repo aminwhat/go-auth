@@ -46,6 +46,14 @@ func (uc *AuthController) Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// @Summary Signup Confirm Otp Method
+// @Description Validate the PhoneNumber with the OtpCode alongside withit
+// @Accept json
+// @Produce json
+// @Param body body dtos.AuthSignupConfirmOtpRequest true "AuthSignupConfirmOtpRequest model"
+// @Success 200 {object} dtos.AuthTokenResponse
+// @Failure 400 {object} controllers_swagger.AuthSignupConfirmOtpBadResponse "Request body is not valid"
+// @Router /auth/signup/confirm-otp [post]
 func (uc *AuthController) SignupConfirmOtp(c *gin.Context) {
 	var req dtos.AuthSignupConfirmOtpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -73,6 +81,7 @@ func (uc *AuthController) Login(c *gin.Context) {
 	result, err := uc.AuthService.Login(req)
 
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, result)
 		return
 	}

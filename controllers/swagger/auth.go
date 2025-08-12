@@ -6,3 +6,9 @@ type AuthSignupBadResponse struct {
 	Succeed bool   `example:"false"`
 	Message string `example:"string"`
 }
+
+type AuthSignupConfirmOtpBadResponse struct {
+	Succeed bool   `example:"false"`
+	Message string `example:"string"`
+	Token   string `example:""`
+}

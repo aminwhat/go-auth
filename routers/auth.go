@@ -11,6 +11,8 @@ import (
 
 func RegisterAuthRoutes(r *gin.Engine, db *mongo.Database) {
 
+	jwtService := services.NewJwtService("my_very_secret_key")
+
 	// Initialize user Repository
 	userRepo := repositories.NewUserRepository(db)
 
@@ -18,7 +20,7 @@ func RegisterAuthRoutes(r *gin.Engine, db *mongo.Database) {
 	authRegisterRepo := repositories.NewAuthRegisterRepository(db)
 
 	// Initialize service with database instance
-	authService := services.NewAuthService(userRepo, authRegisterRepo)
+	authService := services.NewAuthService(userRepo, authRegisterRepo, jwtService)
 
 	// Initialize controller with service
 	authController := controllers.NewAuthController(authService)
