@@ -6,8 +6,12 @@ import (
 	"log"
 	"os"
 
+	docs "go-auth/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -25,7 +29,11 @@ func main() {
 
 	app := gin.Default()
 
+	docs.SwaggerInfo.BasePath = "/"
+
 	routers.RegisterAuthRoutes(app, db)
+
+	app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	app.Run(":3000")
 }

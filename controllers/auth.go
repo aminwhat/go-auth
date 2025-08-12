@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"go-auth/services"
 	"net/http"
 
@@ -19,6 +20,14 @@ func NewAuthController(authService services.AuthService) *AuthController {
 	}
 }
 
+// @Summary Signup Method
+// @Description Sends an OTP code to the phoneNumber (fake OTP, just printed in the console)
+// @Accept json
+// @Produce json
+// @Param body body dtos.AuthSignupRequest true "AuthSignupRequest model"
+// @Success 200 {object} dtos.AuthSignupResponse
+// @Failure 400 {object} controllers_swagger.AuthSignupBadResponse "Request body is not valid"
+// @Router /auth/signup [post]
 func (uc *AuthController) Signup(c *gin.Context) {
 	var req dtos.AuthSignupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -29,6 +38,7 @@ func (uc *AuthController) Signup(c *gin.Context) {
 	result, err := uc.AuthService.Signup(req)
 
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, result)
 		return
 	}

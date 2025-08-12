@@ -1,0 +1,87 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/auth/signup": {
+            "post": {
+                "description": "Sends an OTP code to the phoneNumber (fake OTP, just printed in the console)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Signup Method",
+                "parameters": [
+                    {
+                        "description": "AuthSignupRequest model",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AuthSignupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.AuthSignupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Request body is not valid",
+                        "schema": {
+                            "$ref": "#/definitions/controllers_swagger.AuthSignupBadResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controllers_swagger.AuthSignupBadResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "string"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "dtos.AuthSignupRequest": {
+            "type": "object",
+            "required": [
+                "phoneNumber"
+            ],
+            "properties": {
+                "phoneNumber": {
+                    "type": "string",
+                    "maxLength": 11,
+                    "minLength": 11,
+                    "example": "09123456789"
+                }
+            }
+        },
+        "dtos.AuthSignupResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "string"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        }
+    }
+}

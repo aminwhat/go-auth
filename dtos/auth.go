@@ -1,12 +1,12 @@
 package dtos
 
 type AuthSignupRequest struct {
-	PhoneNumber string `json:"phoneNumber" binding:"required,min=11,max=11"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,min=11,max=11" example:"09123456789"`
 }
 
 type AuthSignupResponse struct {
-	Succeed bool
-	Message string
+	Succeed bool   `example:"true"`
+	Message string `example:"string"`
 }
 
 type AuthLoginRequest struct {
