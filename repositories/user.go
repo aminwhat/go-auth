@@ -5,13 +5,15 @@ import (
 	"go-auth/models"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserRepository interface {
-	Find(filter interface{}) (models.User, error)
+	Find(filter interface{}) (*models.User, error)
 	Create(user models.User) (models.User, error)
+	ExistsByPhoneNumber(phoneNumber string) (bool, error)
 }
 
 type userRepository struct {
@@ -24,17 +26,18 @@ func NewUserRepository(db *mongo.Database) UserRepository {
 	}
 }
 
-func (r *userRepository) Find(filter interface{}) (models.User, error) {
+func (r *userRepository) Find(filter interface{}) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var user models.User
-	err := r.collection.FindOne(ctx, filter).Decode(&user)
-	if err != nil {
-		return models.User{}, err
+	var user *models.User
+	r.collection.FindOne(ctx, filter).Decode(&user)
+
+	if user != nil {
+		return user, nil
 	}
 
-	return user, nil
+	return nil, nil
 }
 
 func (r *userRepository) Create(user models.User) (models.User, error) {
@@ -47,4 +50,21 @@ func (r *userRepository) Create(user models.User) (models.User, error) {
 	}
 	user.ID = result.InsertedID.(primitive.ObjectID)
 	return user, nil
+}
+
+func (r *userRepository) ExistsByPhoneNumber(phoneNumber string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var user *models.User
+
+	filter := bson.M{"phoneNumber": phoneNumber}
+
+	r.collection.FindOne(ctx, filter).Decode(&user)
+
+	if user != nil {
+		return true, nil
+	}
+
+	return false, nil
 }

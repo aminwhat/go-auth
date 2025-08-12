@@ -43,13 +43,12 @@ func (a *authRegisterRepository) Exists(phoneNumber string, otpCode int) (bool, 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	filter := bson.M{"phoneNumber": phoneNumber, "otpCode": otpCode}
-	count, err := a.collection.CountDocuments(ctx, filter)
-	if err != nil {
-		return false, err
-	}
+	var auth_register *models.AuthRegister
 
-	if count > 0 {
+	filter := bson.M{"phoneNumber": phoneNumber, "otpCode": otpCode}
+	a.collection.FindOne(ctx, filter).Decode(&auth_register)
+
+	if auth_register != nil {
 		return true, nil
 	}
 
@@ -63,10 +62,7 @@ func (a *authRegisterRepository) ExistsByPhoneNumber(phoneNumber string) (*model
 	var model *models.AuthRegister
 
 	filter := bson.M{"phoneNumber": phoneNumber}
-	err := a.collection.FindOne(ctx, filter).Decode(&model)
-	if err != nil {
-		return nil, err
-	}
+	a.collection.FindOne(ctx, filter).Decode(&model)
 
 	if model != nil {
 		return model, nil
@@ -79,13 +75,12 @@ func (a *authRegisterRepository) ExistsByOtpCode(otpCode int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	filter := bson.M{"otpCode": otpCode}
-	count, err := a.collection.CountDocuments(ctx, filter)
-	if err != nil {
-		return false, err
-	}
+	var auth_register *models.AuthRegister
 
-	if count > 0 {
+	filter := bson.M{"otpCode": otpCode}
+	a.collection.FindOne(ctx, filter).Decode(&auth_register)
+
+	if auth_register != nil {
 		return true, nil
 	}
 

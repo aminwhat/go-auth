@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-auth/db"
+	"go-auth/repositories"
 	"go-auth/routers"
 	"log"
 	"os"
@@ -26,6 +27,12 @@ func main() {
 		os.Getenv("MONGO_PASSWORD"),
 	)
 	db := client.Database(os.Getenv("MONGO_DB_NAME"))
+
+	healthCheckRepo := repositories.NewHealthCheckRepository(db)
+	health_check_succeed, err := healthCheckRepo.CheckTheHealth()
+	if err != nil || !health_check_succeed {
+		log.Fatal("Failed to Check the Health")
+	}
 
 	app := gin.Default()
 

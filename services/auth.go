@@ -6,6 +6,7 @@ import (
 	"go-auth/models"
 	"go-auth/repositories"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -29,32 +30,46 @@ func NewAuthService(userRepo repositories.UserRepository, authRegisterRepo repos
 	}
 }
 
-func generateOtpCode(authRegisterReo repositories.AuthRegisterRepository) (otpCode int, err error) {
+func generateOtpCode(authRegisterReo repositories.AuthRegisterRepository) (otpCode string, err error) {
 	for {
-		otpCode = rand.Intn(9000) + 1000
+		var otpCodeNum = rand.Intn(9000) + 1000
 
-		exists, err := authRegisterReo.ExistsByOtpCode(otpCode)
+		exists, err := authRegisterReo.ExistsByOtpCode(otpCodeNum)
 		if err != nil {
 			break
 		}
 
 		if !exists {
+			otpCode = strconv.Itoa(otpCodeNum)
 			break
 		}
 	}
 
-	fmt.Println("OtpCode: " + string(otpCode))
+	red := "\033[31m"
+	reset := "\033[0m"
+
+	fmt.Println(red + "OtpCode: " + otpCode + reset)
 
 	return
 }
 
 func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupResponse, error) {
+	userExists, err := s.userRepo.ExistsByPhoneNumber(model.PhoneNumber)
+	if err != nil {
+		return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
+	}
+
+	if userExists {
+		return dtos.AuthSignupResponse{Succeed: false, Message: "A User Already Registered With This Phone Number"}, err
+	}
+
 	existsBefore, err := s.authRegisterReo.ExistsByPhoneNumber(model.PhoneNumber)
 
 	if err != nil {
 		return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
 	}
 
+	// If the user has no record of signup
 	if existsBefore == nil {
 		randomOtpCode, err := generateOtpCode(s.authRegisterReo)
 
@@ -65,12 +80,18 @@ func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupRespo
 		s.authRegisterReo.Create(models.AuthRegister{
 			ID:          primitive.NewObjectID(),
 			PhoneNumber: model.PhoneNumber,
-			OtpCode:     string(randomOtpCode),
+			OtpCode:     randomOtpCode,
 			Trys:        0,
 			CreatedDate: primitive.NewDateTimeFromTime(time.Now()),
+			UpdatedDate: primitive.NewDateTimeFromTime(time.Now()),
 		})
 
 		return dtos.AuthSignupResponse{Succeed: true, Message: "Successfully Registered and OtpCode Sent(as fake)"}, nil
+	}
+
+	if time.Since(existsBefore.CreatedDate.Time()) >= 10*time.Minute {
+		existsBefore.Trys = 0
+		existsBefore.CreatedDate = primitive.NewDateTimeFromTime(time.Now())
 	}
 
 	// Check if it less than 3 trys and less than 10 minutes ago
@@ -86,9 +107,11 @@ func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupRespo
 			return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
 		}
 
-		existsBefore.OtpCode = string(randomOtpCode)
+		existsBefore.OtpCode = randomOtpCode
 		existsBefore.Trys += 1
 		existsBefore.UpdatedDate = primitive.NewDateTimeFromTime(time.Now())
+
+		s.authRegisterReo.Update(*existsBefore)
 
 		return dtos.AuthSignupResponse{Succeed: true, Message: "Code Sent Again"}, nil
 	}
