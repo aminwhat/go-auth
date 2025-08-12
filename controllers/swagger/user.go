@@ -5,3 +5,8 @@ type GetCurrentUserBadResponse struct {
 	Message string `json:"message" example:"string"`
 	User    string `json:"user" example:"null"`
 }
+
+type GetAllUsersBadResponse struct {
+	Succeed bool   `json:"succeed" example:"false"`
+	Message string `json:"message" example:"Bad Request"`
+}

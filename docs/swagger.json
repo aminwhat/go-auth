@@ -109,6 +109,60 @@
                 }
             }
         },
+        "/user/all": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all users with pagination and optional phone number search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get All Users",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Page size (default: 10)",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number search (partial match)",
+                        "name": "phone",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.GetAllUsersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers_swagger.GetAllUsersBadResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/{userId}": {
             "get": {
                 "security": [
@@ -178,6 +232,19 @@
                 "token": {
                     "type": "string",
                     "example": ""
+                }
+            }
+        },
+        "controllers_swagger.GetAllUsersBadResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Bad Request"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -257,6 +324,41 @@
                 "token": {
                     "type": "string",
                     "example": "the token will be here"
+                }
+            }
+        },
+        "dtos.GetAllUsersResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Succeed"
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "totalCount": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "totalPages": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
                 }
             }
         },

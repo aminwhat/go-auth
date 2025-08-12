@@ -20,6 +20,15 @@ definitions:
         example: ""
         type: string
     type: object
+  controllers_swagger.GetAllUsersBadResponse:
+    properties:
+      message:
+        example: Bad Request
+        type: string
+      succeed:
+        example: false
+        type: boolean
+    type: object
   controllers_swagger.GetCurrentUserBadResponse:
     properties:
       message:
@@ -75,6 +84,31 @@ definitions:
       token:
         example: the token will be here
         type: string
+    type: object
+  dtos.GetAllUsersResponse:
+    properties:
+      message:
+        example: Succeed
+        type: string
+      page:
+        example: 1
+        type: integer
+      pageSize:
+        example: 10
+        type: integer
+      succeed:
+        example: true
+        type: boolean
+      totalCount:
+        example: 100
+        type: integer
+      totalPages:
+        example: 10
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
     type: object
   dtos.GetCurrentUserResponse:
     properties:
@@ -195,6 +229,41 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get User By Id
+  /user/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all users with pagination and optional phone number search
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Page size (default: 10)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: pageSize
+        type: integer
+      - description: Phone number search (partial match)
+        in: query
+        name: phone
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.GetAllUsersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers_swagger.GetAllUsersBadResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get All Users
 securityDefinitions:
   ApiKeyAuth:
     description: Type "Bearer" followed by a space and JWT token.

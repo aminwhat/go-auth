@@ -9,12 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository interface {
 	Find(filter interface{}) (*models.User, error)
 	Create(user models.User) (*models.User, error)
 	ExistsByPhoneNumber(phoneNumber string) (*models.User, error)
+	FindAllWithPagination(filter interface{}, page int, pageSize int) ([]models.User, int64, error)
+	CountDocuments(filter interface{}) (int64, error)
 }
 
 type userRepository struct {
@@ -69,4 +72,46 @@ func (r *userRepository) ExistsByPhoneNumber(phoneNumber string) (*models.User, 
 	}
 
 	return nil, nil
+}
+
+func (r *userRepository) FindAllWithPagination(filter interface{}, page int, pageSize int) ([]models.User, int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	skip := int64((page - 1) * pageSize)
+	limit := int64(pageSize)
+
+	cursor, err := r.collection.Find(ctx, filter, &options.FindOptions{
+		Skip:  &skip,
+		Limit: &limit,
+		Sort:  bson.D{{"createdDate", -1}}, // Sort by creation date (newest first)
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := r.CountDocuments(filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, totalCount, nil
+}
+
+func (r *userRepository) CountDocuments(filter interface{}) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	count, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
