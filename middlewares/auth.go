@@ -17,21 +17,23 @@ func AuthMiddleware(jwtService services.JwtService) gin.HandlerFunc {
 			return
 		}
 
+		// Support both "Bearer <token>" and "<token>"
+		var token string
 		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"succeed": false, "message": "Invalid authorization format"})
-			return
+		if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+			token = parts[1]
+		} else {
+			token = authHeader
 		}
 
-		userId, err := jwtService.ValidateToken(parts[1])
+		userId, err := jwtService.ValidateToken(token)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"succeed": false, "message": err.Error()})
 			return
 		}
 
-		// Store userId in context for handlers to use
 		c.Set("userId", userId)
-
 		c.Next()
+
 	}
 }
