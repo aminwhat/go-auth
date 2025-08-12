@@ -15,7 +15,6 @@ import (
 type AuthService interface {
 	Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupResponse, error)
 	SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (dtos.AuthTokenResponse, error)
-	Login(model dtos.AuthLoginRequest) (dtos.AuthTokenResponse, error)
 }
 
 type authService struct {
@@ -56,15 +55,6 @@ func generateOtpCode(authRegisterReo repositories.AuthRegisterRepository) (otpCo
 }
 
 func (s *authService) Signup(model dtos.AuthSignupRequest) (dtos.AuthSignupResponse, error) {
-	userExists, err := s.userRepo.ExistsByPhoneNumber(model.PhoneNumber)
-	if err != nil {
-		return dtos.AuthSignupResponse{Succeed: false, Message: "Something went wrong"}, err
-	}
-
-	if userExists {
-		return dtos.AuthSignupResponse{Succeed: false, Message: "A User Already Registered With This Phone Number"}, err
-	}
-
 	existsBefore, err := s.authRegisterReo.ExistsByPhoneNumber(model.PhoneNumber)
 
 	if err != nil {
@@ -131,14 +121,23 @@ func (s *authService) SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (
 	if exists {
 		s.authRegisterReo.DeleteByPhoneNumber(model.PhoneNumber)
 
-		user, err := s.userRepo.Create(models.User{
-			ID:          primitive.NewObjectID(),
-			PhoneNumber: model.PhoneNumber,
-			CreatedDate: primitive.NewDateTimeFromTime(time.Now()),
-		})
+		var user *models.User
+		user, err = s.userRepo.ExistsByPhoneNumber(model.PhoneNumber)
 
 		if err != nil {
 			return dtos.AuthTokenResponse{Succeed: false, Message: "Something went wrong: In Creating User"}, err
+		}
+
+		if user == nil {
+			user, err = s.userRepo.Create(models.User{
+				ID:          primitive.NewObjectID(),
+				PhoneNumber: model.PhoneNumber,
+				CreatedDate: primitive.NewDateTimeFromTime(time.Now()),
+			})
+
+			if err != nil {
+				return dtos.AuthTokenResponse{Succeed: false, Message: "Something went wrong: In Creating User"}, err
+			}
 		}
 
 		token, err := s.jwtService.GenerateToken(user.ID.Hex())
@@ -152,8 +151,4 @@ func (s *authService) SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (
 	}
 
 	return dtos.AuthTokenResponse{Succeed: false, Message: "Invalid Otp Code"}, err
-}
-
-func (s *authService) Login(model dtos.AuthLoginRequest) (dtos.AuthTokenResponse, error) {
-	panic("unimplemented")
 }

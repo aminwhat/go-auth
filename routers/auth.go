@@ -29,6 +29,5 @@ func RegisterAuthRoutes(r *gin.Engine, db *mongo.Database) {
 
 	auth.POST("/signup", authController.Signup)
 	auth.POST("/signup/confirm-otp", authController.SignupConfirmOtp)
-	auth.POST("/login", authController.Login)
 
 }

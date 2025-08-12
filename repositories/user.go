@@ -12,8 +12,8 @@ import (
 
 type UserRepository interface {
 	Find(filter interface{}) (*models.User, error)
-	Create(user models.User) (models.User, error)
-	ExistsByPhoneNumber(phoneNumber string) (bool, error)
+	Create(user models.User) (*models.User, error)
+	ExistsByPhoneNumber(phoneNumber string) (*models.User, error)
 }
 
 type userRepository struct {
@@ -40,19 +40,19 @@ func (r *userRepository) Find(filter interface{}) (*models.User, error) {
 	return nil, nil
 }
 
-func (r *userRepository) Create(user models.User) (models.User, error) {
+func (r *userRepository) Create(user models.User) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	result, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
-		return models.User{}, err
+		return &models.User{}, err
 	}
 	user.ID = result.InsertedID.(primitive.ObjectID)
-	return user, nil
+	return &user, nil
 }
 
-func (r *userRepository) ExistsByPhoneNumber(phoneNumber string) (bool, error) {
+func (r *userRepository) ExistsByPhoneNumber(phoneNumber string) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -63,8 +63,8 @@ func (r *userRepository) ExistsByPhoneNumber(phoneNumber string) (bool, error) {
 	r.collection.FindOne(ctx, filter).Decode(&user)
 
 	if user != nil {
-		return true, nil
+		return user, nil
 	}
 
-	return false, nil
+	return nil, nil
 }
