@@ -1,6 +1,7 @@
 package services
 
 import (
+	"go-auth/dtos"
 	"go-auth/models"
 	"go-auth/repositories"
 
@@ -9,7 +10,8 @@ import (
 )
 
 type UserService interface {
-	GetUser(userId string) (*models.User, error)
+	GetUser(userId string) (dtos.GetCurrentUserResponse, error)
+	GetAllUsers() ([]models.User, error)
 }
 
 type userService struct {
@@ -22,10 +24,23 @@ func NewUserService(userRepo repositories.UserRepository) UserService {
 	}
 }
 
-func (u *userService) GetUser(userId string) (*models.User, error) {
+func (u *userService) GetUser(userId string) (dtos.GetCurrentUserResponse, error) {
 	objID, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
-		return nil, err
+		return dtos.GetCurrentUserResponse{Succeed: false, Message: err.Error()}, err
 	}
-	return u.userRepo.Find(bson.M{"_id": objID})
+	user, err := u.userRepo.Find(bson.M{"_id": objID})
+	if err != nil {
+		return dtos.GetCurrentUserResponse{Succeed: false, Message: err.Error()}, err
+	}
+
+	if user != nil {
+		return dtos.GetCurrentUserResponse{Succeed: true, Message: "Succeed", User: user}, nil
+	}
+
+	return dtos.GetCurrentUserResponse{Succeed: false, Message: "User Not Found"}, nil
+}
+
+func (u *userService) GetAllUsers() ([]models.User, error) {
+	panic("unimplemented")
 }

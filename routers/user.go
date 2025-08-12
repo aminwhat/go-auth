@@ -24,4 +24,5 @@ func RegisterUserRoutes(r *gin.Engine, db *mongo.Database) {
 	user.Use(middlewares.AuthMiddleware(jwtService))
 
 	user.GET("/", userController.GetCurrentUser)
+	user.GET("/:userId", userController.GetUserById)
 }

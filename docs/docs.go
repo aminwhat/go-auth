@@ -119,6 +119,46 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get A User Data using Specified Id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get User By Id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.GetCurrentUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Something Unknown Happend",
+                        "schema": {
+                            "$ref": "#/definitions/controllers_swagger.GetCurrentUserBadResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

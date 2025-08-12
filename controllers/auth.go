@@ -37,7 +37,7 @@ func (uc *AuthController) Signup(c *gin.Context) {
 
 	result, err := uc.AuthService.Signup(req)
 
-	if err != nil {
+	if err != nil || result.Succeed {
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, result)
 		return
@@ -63,7 +63,7 @@ func (uc *AuthController) SignupConfirmOtp(c *gin.Context) {
 
 	result, err := uc.AuthService.SignupConfirmOtp(req)
 
-	if err != nil {
+	if err != nil || result.Succeed {
 		c.JSON(http.StatusBadRequest, result)
 		return
 	}
