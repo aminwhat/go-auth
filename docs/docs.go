@@ -88,6 +88,37 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Current User Data using Jwt Token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Current User",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.GetCurrentUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Something Unknown Happend",
+                        "schema": {
+                            "$ref": "#/definitions/controllers_swagger.GetCurrentUserBadResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -118,6 +149,23 @@ const docTemplate = `{
                 "token": {
                     "type": "string",
                     "example": ""
+                }
+            }
+        },
+        "controllers_swagger.GetCurrentUserBadResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "string"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "user": {
+                    "type": "string",
+                    "example": "null"
                 }
             }
         },
@@ -182,6 +230,47 @@ const docTemplate = `{
                     "example": "the token will be here"
                 }
             }
+        },
+        "dtos.GetCurrentUserResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Succeed"
+                },
+                "succeed": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "createdDate": {
+                    "type": "string",
+                    "example": "2025-08-12T19:53:35.685Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "689b9bbf5800ec55229e240b"
+                },
+                "phoneNumber": {
+                    "type": "string",
+                    "example": "09123456789"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

@@ -15,6 +15,10 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -39,6 +43,7 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/"
 
 	routers.RegisterAuthRoutes(app, db)
+	routers.RegisterUserRoutes(app, db)
 
 	app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 

@@ -20,6 +20,18 @@ definitions:
         example: ""
         type: string
     type: object
+  controllers_swagger.GetCurrentUserBadResponse:
+    properties:
+      message:
+        example: string
+        type: string
+      succeed:
+        example: false
+        type: boolean
+      user:
+        example: "null"
+        type: string
+    type: object
   dtos.AuthSignupConfirmOtpRequest:
     properties:
       otpCode:
@@ -62,6 +74,29 @@ definitions:
         type: boolean
       token:
         example: the token will be here
+        type: string
+    type: object
+  dtos.GetCurrentUserResponse:
+    properties:
+      message:
+        example: Succeed
+        type: string
+      succeed:
+        example: true
+        type: boolean
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.User:
+    properties:
+      createdDate:
+        example: "2025-08-12T19:53:35.685Z"
+        type: string
+      id:
+        example: 689b9bbf5800ec55229e240b
+        type: string
+      phoneNumber:
+        example: "09123456789"
         type: string
     type: object
 info:
@@ -116,4 +151,29 @@ paths:
           schema:
             $ref: '#/definitions/controllers_swagger.AuthSignupConfirmOtpBadResponse'
       summary: Signup Confirm Otp Method
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Get Current User Data using Jwt Token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.GetCurrentUserResponse'
+        "400":
+          description: Something Unknown Happend
+          schema:
+            $ref: '#/definitions/controllers_swagger.GetCurrentUserBadResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Current User
+securityDefinitions:
+  ApiKeyAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

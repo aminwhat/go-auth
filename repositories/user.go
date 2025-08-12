@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"go-auth/models"
 	"time"
 
@@ -37,6 +38,7 @@ func (r *userRepository) Find(filter interface{}) (*models.User, error) {
 		return user, nil
 	}
 
+	fmt.Println("User with filter of " + fmt.Sprintf("%v", filter) + " not found")
 	return nil, nil
 }
 

@@ -21,8 +21,29 @@ func NewJwtService(secretKey string) JwtService {
 	}
 }
 
-func (j *jwtService) ValidateToken(token string) (userId string, err error) {
-	panic("unimplemented")
+func (j *jwtService) ValidateToken(tokenString string) (userId string, err error) {
+	// Parse the token with the claims
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		// Ensure the signing method is HMAC
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return []byte(j.secretKey), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	// Validate claims and extract user_id
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if uid, ok := claims["user_id"].(string); ok {
+			return uid, nil
+		}
+		return "", jwt.ErrTokenInvalidClaims
+	}
+
+	return "", jwt.ErrTokenInvalidClaims
 }
 
 func (j *jwtService) GenerateToken(userId string) (token string, err error) {

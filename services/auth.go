@@ -132,7 +132,7 @@ func (s *authService) SignupConfirmOtp(model dtos.AuthSignupConfirmOtpRequest) (
 			user, err = s.userRepo.Create(models.User{
 				ID:          primitive.NewObjectID(),
 				PhoneNumber: model.PhoneNumber,
-				CreatedDate: primitive.NewDateTimeFromTime(time.Now()),
+				CreatedDate: time.Now(),
 			})
 
 			if err != nil {
